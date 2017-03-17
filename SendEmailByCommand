@@ -1,0 +1,33 @@
+# -*- coding: utf-8 -*-
+'''
+控制台程序，通过登录163邮箱发送邮件。
+'''
+from email.mime.text import MIMEText
+from email.header import Header
+from smtplib import SMTP_SSL
+
+server_domain =input('请输入邮箱类型(目前仅支持163)：')
+smtp_server = 'smtp.' + server_domain + '.com'
+print(smtp_server)
+
+source_address = input('请输入邮箱用户名：')
+passwrod = input('请输入邮箱密码：')
+
+send_mail_address = source_address+ '@'+ server_domain+ '.com'
+
+receiver = input('请输入收件人邮箱：')
+mail_title = input('请输入邮箱主题：')
+mail_content = input('请输入邮件内容：')
+
+smtp = SMTP_SSL(smtp_server)
+#smtp.debuglevel(1)
+smtp.ehlo(smtp_server)
+smtp.login(source_address, passwrod)
+
+msg = MIMEText(mail_content, "plain", 'utf-8')
+msg["Subject"] = Header(mail_title, 'utf-8')
+msg["From"] = send_mail_address
+msg["To"] = receiver
+smtp.sendmail(send_mail_address, receiver, msg.as_string())
+print('发送成功！')
+smtp.quit()
