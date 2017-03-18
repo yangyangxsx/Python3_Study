@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-使用BeautifulSoup解析网页爬取京东商品的信息并保存到MySQL数据库。
+使用BeautifulSoup解析网页爬取京东商品的信息并保存到MySQ。
+目前存在Bug，即当某项数据有误而被删除后，导致后续的数据不能一一对应。
 '''
 from bs4 import  BeautifulSoup
 import requests
