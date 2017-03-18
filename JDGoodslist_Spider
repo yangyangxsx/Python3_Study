@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+'''
+使用BeautifulSoup解析网页爬取京东商品的信息并保存到MySQL数据库。
+'''
+from bs4 import  BeautifulSoup
+import requests
+import mysql.connector
+
+#手动输入要爬取的商品名称
+keyword = input('输入要查询的商品名称：')
+#keyword = 'SSD'
+url = 'https://search.jd.com/Search?keyword=' + keyword+ '&enc=utf-8'
+headers = {
+    'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36'
+    }
+
+wb_data =requests.get(url, headers=headers)
+#设定网页编码方式为UTF-8
+wb_data.encoding='utf-8'
+soup = BeautifulSoup(wb_data.text, 'lxml')
+#设置要爬取的信息的位置
+names = soup.select('#J_goodsList > ul > li > div > div.p-name.p-name-type-2 > a > em')
+prices = soup.select('#J_goodsList > ul > li > div > div.p-price > strong > i')
+links = soup.select('#J_goodsList > ul > li > div > div.p-name.p-name-type-2 > a')
+
+#删除links中长度过长（也就是不符合爬取要求）的link
+num = 0
+for link, name, price in zip(links, names, prices):
+    if len(link.get('href')) > 50:
+        del links[num]
+        del names[num]
+        del prices[num]
+    num += 1  
+
+#将爬取到是数据写入数据库
+conn = mysql.connector.connect(user='root', password = '123456', database = 'python')
+cursor = conn.cursor()
+
+
+id = 0
+for name in names:
+    
+    name = name.get_text()
+    price = prices[id].get_text()
+    link = 'http:' + links[id].get('href')
+    try:
+        cursor.execute('insert into jingdong (id, name, price, link) values (%s, %s, %s, %s)', [id + 1, name, price, link])
+        conn.commit()
+        id += 1
+    except IndexError:
+        break
+cursor.close()
+conn.close()
